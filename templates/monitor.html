@@ -1,0 +1,31 @@
+<html>
+  <meta http-equiv="refresh" content="10"/>
+
+
+<h1> INSERTS-Redis : {{num_inserts}}  </h1>
+ 
+
+<h1>LOGS-Mongo</h1>
+<table border="1">
+
+{% for item in items %}
+  <tr>
+      <td> {{ item.comando }} </td>
+      <td> {{ item.id }} </td>
+      <td>  {{ item.nome }} </td>
+      <td>  {{ item.data }} </td>
+  </tr>
+{% endfor %}
+</table>
+
+<h1>USUÁRIOS-MySql</h1>
+<table border="1">
+  
+{% for u in usuarios: %}
+  <tr>
+      <td> {{ u[0] }} </td>
+      <td>  {{ u[1] }} </td>
+  </tr>
+{% endfor %}
+</table>
+</html>

@@ -1,0 +1,84 @@
+rabbitmq:
+  image: rabbitmq:3-management
+  ports:
+    - "15672:15672"
+    - "5672:5672"
+
+db_mongo:
+  image: mongo
+  ports:
+    - "27017:27017"
+  volumes:
+    - .:/fila
+
+db_redis:
+  image: redis
+  ports:
+    - "6379:6379"
+  volumes:
+    - redis_data:/data
+
+db_mysql:
+    image: mysql:5.7
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+  
+produtor:
+  build: .
+  command: python envia.py
+  ports:
+    - "5000:5000"
+  links:
+    - rabbitmq
+
+receptor1:
+  build: .
+  command: ["./wait-for-it.sh", "rabbitmq:5672", "-t", "90", "--","python", "recebe.py","c1"]
+  ports:
+    - "4001:4001"
+  links:
+    - rabbitmq
+    - db_mongo
+    - db_redis
+    - db_mysql
+ 
+receptor2:
+  build: .
+  command: ["./wait-for-it.sh", "rabbitmq:5672", "-t", "90", "--","python", "recebe.py","c2"]
+  ports:
+    - "4002:4002"
+  links:
+    - rabbitmq
+    - db_mongo
+    - db_redis
+    - db_mysql
+
+receptor3:
+  build: .
+  command: ["./wait-for-it.sh", "rabbitmq:5672", "-t", "90", "--","python", "recebe.py","c3"]
+  ports:
+    - "4003:4003"
+  links:
+    - rabbitmq
+    - db_mongo
+    - db_redis
+    - db_mysql
+
+monitor:
+  build: .
+  command: python monitor.py 
+  ports:
+    - "5005:5005"
+  volumes:
+    - .:/fila
+  links:
+    - db_mongo
+    - db_redis
+    - db_mysql 
+  restart: on-failure
